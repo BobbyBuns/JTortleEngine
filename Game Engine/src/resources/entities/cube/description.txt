@@ -1,0 +1,4 @@
+name=Cube
+model=cube
+texture=cubeTexture
+rigged=false

@@ -1,0 +1,54 @@
+#version 330 core
+
+in vec3 position;
+in vec2 textureCoordinates;
+in vec3 normal;
+in vec4 bones;
+in vec4 weights;
+
+out vec2 pass_textureCoordinates;
+out vec3 surfaceNormal;
+out vec3 toLightVector;
+out vec3 toCameraVector;
+out float isBug;
+
+uniform mat4 transformationMatrix;
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
+uniform vec3 lightPosition;
+
+uniform mat4 joints[100];
+
+void main(void){
+
+	isBug = 0.0;
+	
+	if(joints[1][0][0] == 0){
+		isBug = 1.0;
+	}
+	
+	vec4 originalPosition = vec4(position, 1.0);
+	
+	int index = int(bones.x);
+	vec4 animatedPosition = (joints[index] * originalPosition) * weights.x;
+	vec4 animatedNormal = (joints[index] * vec4(normal, 0.0)) * weights.x;
+
+	index = int(bones.y);
+	animatedPosition += (joints[index] * originalPosition) * weights.y;
+	animatedNormal += (joints[index] * vec4(normal, 0.0)) * weights.y;
+	
+	index = int(bones.z);
+	animatedPosition += (joints[index] * originalPosition) * weights.z;
+	animatedNormal += (joints[index] * vec4(position,1.0)) * weights.z;
+	
+	index = int(bones.w);
+	animatedPosition += (joints[index] * originalPosition) * weights.w;
+	animatedNormal += (joints[index] * vec4(normal, 0.0)) * weights.w;
+
+	vec4 worldPosition = transformationMatrix * animatedPosition;
+	gl_Position = projectionMatrix * viewMatrix * worldPosition;
+	pass_textureCoordinates = textureCoordinates;
+	surfaceNormal = (transformationMatrix * vec4(animatedNormal.xyz,0.0)).xyz;
+	toLightVector = lightPosition - worldPosition.xyz;
+	toCameraVector = (inverse(viewMatrix) * vec4(0.0,0.0,0.0,1.0)).xyz - worldPosition.xyz;
+}

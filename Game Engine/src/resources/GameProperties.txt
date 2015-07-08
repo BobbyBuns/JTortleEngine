@@ -1,0 +1,3 @@
+Title: Codename R
+Description: To be worked on
+Main: examplePackage.ExampleCore
